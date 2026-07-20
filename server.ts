@@ -114,6 +114,9 @@ async function sendTransactionalEmail(
       port: Number(port),
       secure: Number(port) === 465,
       auth: { user, pass },
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 5000,
     });
 
     await transporter.sendMail({
@@ -250,12 +253,15 @@ app.post("/api/auth/login", async (req, res) => {
       { expiresIn: "8h" }
     );
 
-    // Dispatch branded email notification on login
+    // Send response immediately before email
+    res.json({ token, admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
+
+    // Dispatch branded email notification on login (fire and forget)
     const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "Unknown";
     const userAgent = req.headers["user-agent"] || "Unknown";
     const loginTime = new Date().toLocaleString();
 
-    await sendTransactionalEmail(
+    sendTransactionalEmail(
       admin.email,
       "Security Notification: Admin Login",
       `
@@ -271,9 +277,11 @@ app.post("/api/auth/login", async (req, res) => {
         <p style="font-size: 13px; color: #64748b;">This is a security alert from Sunrise Kindergarten & School Admin portal.</p>
       </div>
       `
-    );
-
-    res.json({ token, admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
+    ).then(() => {
+      // Email sent successfully
+    }).catch((err) => {
+      console.error("Failed to send login notification email:", err);
+    });
   } catch (err) {
     res.status(500).json({ error: "Server login failure." });
   }

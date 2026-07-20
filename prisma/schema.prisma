@@ -1,0 +1,215 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model SiteSetting {
+  id              Int      @id @default(1)
+  schoolName      String   @default("Sunrise Kindergarten & School")
+  tagline         String   @default("Nurturing Tomorrow's Leaders Today")
+  email           String   @default("info@sunrisekindergarten.edu")
+  phone1          String   @default("+880 1711-000000")
+  phone2          String   @default("+880 1811-000000")
+  address         String   @default("123 Sunrise Avenue, Dhaka, Bangladesh")
+  logoUrl         String   @default("")
+  logoPublicId    String   @default("")
+  faviconUrl      String   @default("")
+  faviconPublicId String   @default("")
+  facebookUrl     String   @default("https://facebook.com")
+  twitterUrl      String   @default("https://twitter.com")
+  youtubeUrl      String   @default("https://youtube.com")
+  instagramUrl    String   @default("https://instagram.com")
+  whatsappUrl     String   @default("https://wa.me")
+  smtpHost        String   @default("smtp.mailtrap.io")
+  smtpPort        Int      @default(2525)
+  smtpUser        String   @default("")
+  smtpPassword    String   @default("")
+  smtpFromName    String   @default("Sunrise School Admissions")
+  smtpFromEmail   String   @default("no-reply@sunrisekindergarten.edu")
+}
+
+model HeroSlide {
+  id         Int    @id @default(autoincrement())
+  title      String @default("")
+  caption    String @default("")
+  buttonText String @default("")
+  buttonUrl  String @default("")
+  imageUrl   String
+  publicId   String @default("")
+  order      Int    @default(0)
+}
+
+model Facility {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String
+  icon        String @default("School")
+  link        String @default("")
+  order       Int    @default(0)
+}
+
+model Stat {
+  id        Int    @id @default(autoincrement())
+  label     String
+  value     String
+  icon      String @default("Award")
+  suffix    String @default("")
+  imageUrl  String @default("")
+  publicId  String @default("")
+  order     Int    @default(0)
+}
+
+model NewsPost {
+  id        Int      @id @default(autoincrement())
+  title     String
+  slug      String   @unique
+  content   String
+  imageUrl  String   @default("")
+  publicId  String   @default("")
+  createdAt DateTime @default(now())
+}
+
+model TeacherStaff {
+  id          Int    @id @default(autoincrement())
+  name        String
+  designation String
+  photoUrl    String @default("")
+  publicId    String @default("")
+  facebook    String @default("")
+  twitter     String @default("")
+  linkedin    String @default("")
+  email       String @default("")
+  bio         String @default("")
+  order       Int    @default(0)
+}
+
+model Authority {
+  id          Int    @id @default(autoincrement())
+  name        String
+  designation String
+  message     String
+  photoUrl    String @default("")
+  publicId    String @default("")
+  type        String @default("principal") // principal, vice_principal, chair
+  order       Int    @default(0)
+}
+
+model Achievement {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String
+  imageUrl    String @default("")
+  publicId    String @default("")
+  date        String @default("")
+}
+
+model Club {
+  id            Int      @id @default(autoincrement())
+  name          String
+  slug          String   @unique
+  description   String
+  coverImageUrl String   @default("")
+  coverPublicId String   @default("")
+  createdAt     DateTime @default(now())
+}
+
+model ClubMember {
+  id       Int    @id @default(autoincrement())
+  clubId   Int
+  name     String
+  role     String
+  photoUrl String @default("")
+  publicId String @default("")
+}
+
+model ClubGalleryImage {
+  id       Int    @id @default(autoincrement())
+  clubId   Int
+  imageUrl String
+  publicId String @default("")
+}
+
+model GalleryItem {
+  id        Int      @id @default(autoincrement())
+  title     String   @default("")
+  album     String   @default("General") // Campus, Sports, Events
+  imageUrl  String
+  publicId  String   @default("")
+  createdAt DateTime @default(now())
+}
+
+model Testimonial {
+  id      Int    @id @default(autoincrement())
+  name    String
+  role    String
+  content String
+  rating  Int    @default(5)
+}
+
+model Routine {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @default("")
+  pdfUrl      String
+  publicId    String   @default("")
+  classLevel  String   @default("All")
+  createdAt   DateTime @default(now())
+}
+
+model ExamPdf {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @default("")
+  pdfUrl      String
+  publicId    String   @default("")
+  classLevel  String   @default("All")
+  createdAt   DateTime @default(now())
+}
+
+model AcademicBlock {
+  id        Int    @id @default(autoincrement())
+  section   String @unique // brief_history, school_feature, academic_overview, hostel, co_curricular
+  title     String
+  content   String
+  imageUrl  String @default("")
+  publicId  String @default("")
+}
+
+model AdmissionApplication {
+  id                Int       @id @default(autoincrement())
+  studentName       String
+  dob               String
+  classApplyingFor  String
+  guardianName      String
+  guardianPhone     String
+  guardianEmail     String
+  address           String
+  documentUrl       String    @default("")
+  documentPublicId  String    @default("")
+  status            String    @default("Pending") // Pending, Accepted, Rejected
+  adminNotes        String    @default("")
+  decidedBy         String    @default("")
+  decidedAt         DateTime?
+  createdAt         DateTime  @default(now())
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("admin") // super_admin, admin
+  isDeactivated Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+}

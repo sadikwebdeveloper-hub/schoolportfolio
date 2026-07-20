@@ -1,0 +1,8 @@
+{
+  "name": "Sunrise Kindergarten & School",
+  "description": "A fully functional school website with admissions, admin panel, dynamic clubs, and content management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

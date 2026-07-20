@@ -1421,23 +1421,88 @@ app.post("/api/admissions", upload.single("document"), async (req: any, res) => 
     });
 
     // Send confirmation email to parent
+    const settings = await prisma.siteSetting.findUnique({ where: { id: 1 } });
+    const schoolName = settings?.schoolName || "Sunrise Kindergarten & School";
+    const schoolEmail = settings?.email || "admissions@sunrisekindergarten.edu";
+    const schoolPhone = settings?.phone1 || "+880 1711-123456";
+    const schoolAddress = settings?.address || "Uttara, Dhaka, Bangladesh";
+    const logoUrl = settings?.logoUrl || "";
+
     await sendTransactionalEmail(
       guardianEmail,
       "Admission Application Received - Sunrise School",
       `
-      <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; max-width: 600px;">
-        <h2 style="color: #0f172a;">Application Submitted Successfully</h2>
-        <p>Dear ${guardianName},</p>
-        <p>Thank you for choosing Sunrise Kindergarten & School. We have successfully received your admission application for <strong>${studentName}</strong> (Class: <strong>${classApplyingFor}</strong>).</p>
-        <p>Your application status is currently <strong>Pending Review</strong>. We will contact you shortly after reviewing the documents.</p>
-        <div style="background-color: #f8fafc; padding: 12px; border-radius: 6px; margin: 16px 0;">
-          <strong>Student Name:</strong> ${studentName}<br/>
-          <strong>Date of Birth:</strong> ${dob}<br/>
-          <strong>Class Applying For:</strong> ${classApplyingFor}<br/>
-          <strong>Reference ID:</strong> SUN-${appRecord.id}
-        </div>
-        <p style="font-size: 13px; color: #64748b;">If you have any questions, feel free to reply to this email or call our hotline.</p>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Application Received</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa;">
+          <tr>
+            <td style="padding: 40px 20px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #0F172A 0%, #1e293b 100%); padding: 30px 40px; text-align: center;">
+                    ${logoUrl ? `<img src="${logoUrl}" alt="${schoolName}" style="max-height: 60px; border-radius: 8px;">` : `<div style="font-size: 28px; font-weight: bold; color: #fbbf24;">SK</div>`}
+                    <h1 style="color: #ffffff; font-size: 24px; margin: 15px 0 5px 0; font-weight: 700;">${schoolName}</h1>
+                    <p style="color: #94a3b8; font-size: 14px; margin: 0;">Admission Office</p>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                      <h2 style="color: #1e40af; font-size: 20px; margin: 0 0 10px 0;">✅ Application Submitted Successfully</h2>
+                      <p style="color: #1e3a8a; font-size: 16px; margin: 0;">Thank you for choosing our school.</p>
+                    </div>
+                    
+                    <p style="color: #334155; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                      Dear <strong>${guardianName}</strong>,
+                    </p>
+                    
+                    <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+                      Thank you for choosing ${schoolName}. We have successfully received your admission application for <strong>${studentName}</strong> (Class: <strong>${classApplyingFor}</strong>).
+                    </p>
+                    
+                    <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+                      Your application status is currently <strong>Pending Review</strong>. Our admissions team will carefully review your application and contact you shortly after reviewing the documents.
+                    </p>
+                    
+                    <div style="background-color: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                      <p style="color: #0F172A; font-size: 14px; margin: 0 0 8px 0;"><strong>📋 Application Details:</strong></p>
+                      <p style="color: #475569; font-size: 14px; margin: 0 0 8px 0;"><strong>Student Name:</strong> ${studentName}</p>
+                      <p style="color: #475569; font-size: 14px; margin: 0 0 8px 0;"><strong>Date of Birth:</strong> ${dob}</p>
+                      <p style="color: #475569; font-size: 14px; margin: 0 0 8px 0;"><strong>Class Applying For:</strong> ${classApplyingFor}</p>
+                      <p style="color: #475569; font-size: 14px; margin: 0;"><strong>Reference ID:</strong> SUN-${appRecord.id}</p>
+                    </div>
+                    
+                    <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 20px 0;">
+                      If you have any questions or need to provide additional information, please feel free to reply to this email or call our hotline during business hours.
+                    </p>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #0F172A; padding: 30px 40px; text-align: center;">
+                    <p style="color: #94a3b8; font-size: 14px; margin: 0 0 15px 0;">${schoolName}</p>
+                    <p style="color: #64748b; font-size: 12px; margin: 0 0 5px 0;">📍 ${schoolAddress}</p>
+                    <p style="color: #64748b; font-size: 12px; margin: 0 0 5px 0;">📧 ${schoolEmail}</p>
+                    <p style="color: #64748b; font-size: 12px; margin: 0 0 15px 0;">📞 ${schoolPhone}</p>
+                    <p style="color: #475569; font-size: 11px; margin: 0;">© ${new Date().getFullYear()} ${schoolName}. All rights reserved.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
       `
     );
 
@@ -1482,29 +1547,166 @@ app.put("/api/admissions/:id/status", authenticateAdmin, async (req: any, res) =
       ? "Congratulations! Admission Approved - Sunrise School" 
       : "Admission Status Update - Sunrise School";
 
+    const settings = await prisma.siteSetting.findUnique({ where: { id: 1 } });
+    const schoolName = settings?.schoolName || "Sunrise Kindergarten & School";
+    const schoolEmail = settings?.email || "admissions@sunrisekindergarten.edu";
+    const schoolPhone = settings?.phone1 || "+880 1711-123456";
+    const schoolAddress = settings?.address || "Uttara, Dhaka, Bangladesh";
+    const logoUrl = settings?.logoUrl || "";
+
     const emailHtml = status === "Accepted" 
       ? `
-        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; max-width: 600px;">
-          <h2 style="color: #16a34a;">Admission Approved!</h2>
-          <p>Dear ${appRecord.guardianName},</p>
-          <p>We are delighted to inform you that the admission application for <strong>${appRecord.studentName}</strong> to class <strong>${appRecord.classApplyingFor}</strong> has been <strong>ACCEPTED</strong>!</p>
-          <div style="background-color: #f0fdf4; padding: 12px; border-radius: 6px; margin: 16px 0; border: 1px solid #bbf7d0;">
-            <strong>Ref ID:</strong> SUN-${appRecord.id}<br/>
-            <strong>Remarks/Steps:</strong> Please visit the administrative building with physical copies of the birth certificate and guardian photos to complete enrollment within 7 working days.
-          </div>
-          <p>We look forward to welcoming your child to our vibrant student community!</p>
-          <p style="font-size: 13px; color: #64748b;">Sincerely,<br/>Office of Admissions<br/>Sunrise Kindergarten & School</p>
-        </div>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Admission Approved</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa;">
+            <tr>
+              <td style="padding: 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                  <!-- Header -->
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #0F172A 0%, #1e293b 100%); padding: 30px 40px; text-align: center;">
+                      ${logoUrl ? `<img src="${logoUrl}" alt="${schoolName}" style="max-height: 60px; border-radius: 8px;">` : `<div style="font-size: 28px; font-weight: bold; color: #fbbf24;">SK</div>`}
+                      <h1 style="color: #ffffff; font-size: 24px; margin: 15px 0 5px 0; font-weight: 700;">${schoolName}</h1>
+                      <p style="color: #94a3b8; font-size: 14px; margin: 0;">Admission Office</p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 40px;">
+                      <div style="background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                        <h2 style="color: #16a34a; font-size: 20px; margin: 0 0 10px 0;">🎉 Admission Approved!</h2>
+                        <p style="color: #166534; font-size: 16px; margin: 0;">Congratulations! Your child has been accepted.</p>
+                      </div>
+                      
+                      <p style="color: #334155; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                        Dear <strong>${appRecord.guardianName}</strong>,
+                      </p>
+                      
+                      <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+                        We are delighted to inform you that the admission application for <strong>${appRecord.studentName}</strong> to class <strong>${appRecord.classApplyingFor}</strong> has been <strong>ACCEPTED</strong>!
+                      </p>
+                      
+                      <div style="background-color: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <p style="color: #0F172A; font-size: 14px; margin: 0 0 8px 0;"><strong>📋 Application Details:</strong></p>
+                        <p style="color: #475569; font-size: 14px; margin: 0 0 8px 0;"><strong>Reference ID:</strong> SUN-${appRecord.id}</p>
+                        <p style="color: #475569; font-size: 14px; margin: 0 0 8px 0;"><strong>Student Name:</strong> ${appRecord.studentName}</p>
+                        <p style="color: #475569; font-size: 14px; margin: 0 0 8px 0;"><strong>Class:</strong> ${appRecord.classApplyingFor}</p>
+                        <p style="color: #dc2626; font-size: 14px; margin: 0;"><strong>⚠️ Important:</strong> Please visit the administrative building with physical copies of the birth certificate and guardian photos to complete enrollment within 7 working days.</p>
+                      </div>
+                      
+                      <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 20px 0;">
+                        We look forward to welcoming your child to our vibrant student community!
+                      </p>
+                      
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top: 30px;">
+                        <tr>
+                          <td style="background-color: #16a34a; border-radius: 8px; text-align: center;">
+                            <a href="#" style="display: inline-block; padding: 12px 30px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 15px;">View Application Status</a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color: #0F172A; padding: 30px 40px; text-align: center;">
+                      <p style="color: #94a3b8; font-size: 14px; margin: 0 0 15px 0;">${schoolName}</p>
+                      <p style="color: #64748b; font-size: 12px; margin: 0 0 5px 0;">📍 ${schoolAddress}</p>
+                      <p style="color: #64748b; font-size: 12px; margin: 0 0 5px 0;">📧 ${schoolEmail}</p>
+                      <p style="color: #64748b; font-size: 12px; margin: 0 0 15px 0;">📞 ${schoolPhone}</p>
+                      <p style="color: #475569; font-size: 11px; margin: 0;">© ${new Date().getFullYear()} ${schoolName}. All rights reserved.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `
       : `
-        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; max-width: 600px;">
-          <h2 style="color: #dc2626;">Admission Status Update</h2>
-          <p>Dear ${appRecord.guardianName},</p>
-          <p>Thank you for your interest in Sunrise Kindergarten & School.</p>
-          <p>After careful review of your application for <strong>${appRecord.studentName}</strong>, we regret to inform you that we are unable to offer admission at this time.</p>
-          ${adminNotes ? `<p><strong>Admissions Office Notes:</strong> ${adminNotes}</p>` : ""}
-          <p style="font-size: 13px; color: #64748b;">If you believe this was an error or would like to appeal, please contact the main office.</p>
-        </div>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Admission Status Update</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa;">
+            <tr>
+              <td style="padding: 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                  <!-- Header -->
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #0F172A 0%, #1e293b 100%); padding: 30px 40px; text-align: center;">
+                      ${logoUrl ? `<img src="${logoUrl}" alt="${schoolName}" style="max-height: 60px; border-radius: 8px;">` : `<div style="font-size: 28px; font-weight: bold; color: #fbbf24;">SK</div>`}
+                      <h1 style="color: #ffffff; font-size: 24px; margin: 15px 0 5px 0; font-weight: 700;">${schoolName}</h1>
+                      <p style="color: #94a3b8; font-size: 14px; margin: 0;">Admission Office</p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 40px;">
+                      <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                        <h2 style="color: #dc2626; font-size: 20px; margin: 0 0 10px 0;">Admission Status Update</h2>
+                        <p style="color: #991b1b; font-size: 16px; margin: 0;">Thank you for your interest in our school.</p>
+                      </div>
+                      
+                      <p style="color: #334155; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                        Dear <strong>${appRecord.guardianName}</strong>,
+                      </p>
+                      
+                      <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+                        Thank you for your interest in ${schoolName}. After careful review of your application for <strong>${appRecord.studentName}</strong>, we regret to inform you that we are unable to offer admission at this time.
+                      </p>
+                      
+                      ${adminNotes ? `
+                      <div style="background-color: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <p style="color: #0F172A; font-size: 14px; margin: 0 0 8px 0;"><strong>📝 Admissions Office Notes:</strong></p>
+                        <p style="color: #475569; font-size: 14px; margin: 0;">${adminNotes}</p>
+                      </div>
+                      ` : ''}
+                      
+                      <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 20px 0;">
+                        If you believe this was an error or would like to appeal this decision, please contact our main office during business hours.
+                      </p>
+                      
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top: 30px;">
+                        <tr>
+                          <td style="background-color: #0F172A; border-radius: 8px; text-align: center;">
+                            <a href="mailto:${schoolEmail}" style="display: inline-block; padding: 12px 30px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 15px;">Contact Admissions Office</a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color: #0F172A; padding: 30px 40px; text-align: center;">
+                      <p style="color: #94a3b8; font-size: 14px; margin: 0 0 15px 0;">${schoolName}</p>
+                      <p style="color: #64748b; font-size: 12px; margin: 0 0 5px 0;">📍 ${schoolAddress}</p>
+                      <p style="color: #64748b; font-size: 12px; margin: 0 0 5px 0;">📧 ${schoolEmail}</p>
+                      <p style="color: #64748b; font-size: 12px; margin: 0 0 15px 0;">📞 ${schoolPhone}</p>
+                      <p style="color: #475569; font-size: 11px; margin: 0;">© ${new Date().getFullYear()} ${schoolName}. All rights reserved.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `;
 
     await sendTransactionalEmail(appRecord.guardianEmail, emailSubject, emailHtml);
